@@ -4,13 +4,13 @@ from playwright.sync_api import sync_playwright
 # Global variable to store startup data
 startup_data = None
 
-HEADLESS_MODE=False # show a debug browser or not
+HEADLESS_MODE=True # show a debug browser or not
 DEBUG_BROWSER_WIDTH=1200
 DEBUG_BROWSER_HEIGHT=800
 SHOW_DEV_TOOLS=False
 
-SLOW_MO_DELAY=1000 # ms to wait each step
-PAUSE_MODE=True # pause at start and end
+SLOW_MO_DELAY=0 # ms to wait each step
+PAUSE_MODE=False # pause at start and end
 
 def setup_browser_and_page():
     """Initialize browser and page with response interception"""
@@ -162,8 +162,13 @@ def select_addons(iframe_content, page, addons):
     # Select each addon
     for addon in addons:
         print(f"Selecting addon: {addon}")
-        iframe_content.get_by_text(addon).wait_for(state="visible")
-        iframe_content.get_by_text(addon).click(force=True)
+        # Target the specific clickable item container for add-ons
+        # This avoids selecting misnamed subservices like "ADD ON Extractions"
+        addon_locator = iframe_content.locator(f"div[class*='ServiceOptionList_serviceOptionItemCtn']:has-text('{addon}')")
+        
+        addon_locator.wait_for(state="visible")
+        addon_locator.click(force=True)
+        print(f"Selected add-on: {addon}")
     
     # Wait a moment for selections to register
     page.wait_for_timeout(1000)
